@@ -45,7 +45,7 @@ import axios from "axios"
 			'environment-variable.delete',
 			'subdomains.read',
 			'subdomains.create',
-			'subdomains.sync',
+			'subdomains.update',
 			'subdomains.delete',
 			'backup.create',
 			'backup.read',
