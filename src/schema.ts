@@ -170,6 +170,7 @@ export const tickets = pgTable('tickets', {
 	channelId: varchar('channelId', { length: 22 }).notNull(),
 
 	transcript: varchar('transcript', { length: 255 }),
+	users: varchar('users', { length: 22 }).array().notNull().default([]),
 	notes: text('notes').notNull(),
 
 	closed: timestamp('closed'),

@@ -1,0 +1,1 @@
+ALTER TABLE "tickets" ADD COLUMN "users" varchar(22)[] DEFAULT '{}' NOT NULL;

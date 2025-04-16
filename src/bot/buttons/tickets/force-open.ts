@@ -71,7 +71,8 @@ export default new Button()
 			.values({
 				discordId: ctx.interaction.user.id,
 				channelId: '0',
-				notes: Object.entries(data).map(([key, value]) => `${key}: ${value}`).join('\n')
+				notes: Object.entries(data).map(([key, value]) => `${key}: ${value}`).join('\n'),
+				users: []
 			})
 			.returning({ id: ctx.database.schema.tickets.id, notes: ctx.database.schema.tickets.notes })
 			.then((r) => r[0])
