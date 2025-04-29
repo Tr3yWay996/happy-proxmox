@@ -102,9 +102,8 @@ export default new Command()
 
 		await time.wait(time(5).s())
 
-		const id = await ctx.pterodactyl.createUser(ip, ctx.interaction.user, password)
-
 		await Promise.all([
+			ctx.pterodactyl.createUser(ip, ctx.interaction.user, password),
 			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.members.fetch(ctx.interaction.user.id)
 				.then((member) => member.roles.add(ctx.env.DEMO_ROLE)),
 			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.channels.fetch(ctx.env.DEMO_CHANNEL)

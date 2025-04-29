@@ -45,7 +45,7 @@ export default new Crontab()
 					)
 			])
 
-			while (await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).status.current.$get().then((e) => e.lock)) {
+			while (await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).status.current.$get().then((e) => e.status !== 'stopped')) {
 				await time.wait(time(1).s())
 			}
 
