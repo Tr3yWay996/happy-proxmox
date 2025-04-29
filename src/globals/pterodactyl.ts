@@ -15,7 +15,7 @@ import { network } from "@rjweb/utils"
  * @since 1.1.0
 */ export async function createUser(ip: network.IPAddress<4>, user: User, password: string): Promise<number> {
 	const data = await axios.post(`${url(env.PTERO_URL, ip)}/api/application/users`, {
-		email: 'user@demo.panel',
+		email: `demo.${user.id}@demo.panel`,
 		username: 'demo',
 		first_name: 'Demo',
 		last_name: user.id,
@@ -29,7 +29,7 @@ import { network } from "@rjweb/utils"
 	})
 
 	await Promise.all(env.PTERO_DEMO_SERVERS.map((server) => axios.post(`${url(env.PTERO_URL, ip)}/api/client/servers/${server}/users`, {
-		email: 'user@demo.panel',
+		email: `demo.${user.id}@demo.panel`,
 		permissions: [
 			'control.console'
 		]
