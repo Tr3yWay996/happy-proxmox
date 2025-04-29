@@ -1,0 +1,1 @@
+ALTER TABLE "demo_accesses" DROP COLUMN "pterodactylId";

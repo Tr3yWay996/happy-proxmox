@@ -67,7 +67,6 @@ export const demoAccesses = pgTable('demo_accesses', {
 
 	expired: boolean('expired').default(false).notNull(),
 	password: char('password', { length: 16 }).notNull(),
-	pterodactylId: integer('pterodactylId').notNull(),
 	discordId: varchar('discordId', { length: 22 }).notNull(),
 
 	created: timestamp('created').default(sql`now()`).notNull()

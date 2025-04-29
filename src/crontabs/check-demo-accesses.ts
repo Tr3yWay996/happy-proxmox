@@ -10,8 +10,7 @@ export default new Crontab()
 	.listen(async(ctx) => {
 		const expiredDemoAccesses = await ctx.database.select({
 			id: ctx.database.schema.demoAccesses.id,
-			discordId: ctx.database.schema.demoAccesses.discordId,
-			pterodactylId: ctx.database.schema.demoAccesses.pterodactylId
+			discordId: ctx.database.schema.demoAccesses.discordId
 		}).from(ctx.database.schema.demoAccesses)
 			.where(and(
 				eq(ctx.database.schema.demoAccesses.expired, false),

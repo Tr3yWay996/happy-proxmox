@@ -68,7 +68,6 @@ export default new Command()
 			ctx.database.insert(ctx.database.schema.demoAccesses)
 				.values({
 					discordId: ctx.interaction.user.id,
-					pterodactylId: -number.generate(0, 100000),
 					password
 				})
 				.returning({ id: ctx.database.schema.demoAccesses.id }),
@@ -106,12 +105,6 @@ export default new Command()
 		const id = await ctx.pterodactyl.createUser(ip, ctx.interaction.user, password)
 
 		await Promise.all([
-			ctx.database.update(ctx.database.schema.demoAccesses)
-				.set({ pterodactylId: id })
-				.where(and(
-					eq(ctx.database.schema.demoAccesses.discordId, ctx.interaction.user.id),
-					eq(ctx.database.schema.demoAccesses.password, password)
-				)),
 			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.members.fetch(ctx.interaction.user.id)
 				.then((member) => member.roles.add(ctx.env.DEMO_ROLE)),
 			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.channels.fetch(ctx.env.DEMO_CHANNEL)

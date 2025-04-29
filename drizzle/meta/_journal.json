@@ -155,6 +155,13 @@
       "when": 1745950027958,
       "tag": "0021_mature_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1745950085094,
+      "tag": "0022_noisy_captain_marvel",
+      "breakpoints": true
     }
   ]
 }
