@@ -1,7 +1,7 @@
 import Command from "@/bot/command"
 import { number, string, time } from "@rjweb/utils"
 import { InteractionContextType, MessageFlags } from "discord.js"
-import { eq, and } from "drizzle-orm"
+import { eq, and, count } from "drizzle-orm"
 
 export default new Command()
 	.build((builder) => builder
@@ -43,6 +43,17 @@ export default new Command()
 			content: ctx.join(
 				'`🔍` You have already requested a demo account in the last 24 hours, please wait or ask in a ticket.',
 				`you can request a new one in <t:${Math.floor((demoAccesses.find((access) => access.created.getTime() > Date.now() - time(1).d())!.created.getTime() + time(1).d()) / 1000)}:R>`
+			), flags: [
+				MessageFlags.Ephemeral
+			]
+		})
+
+		if (await ctx.database.select({ count: count() }).from(ctx.database.schema.demoAccesses)
+			.where(eq(ctx.database.schema.demoAccesses.expired, false)).then((r) => r[0]?.count || 0) >= 4
+		) return ctx.interaction.reply({
+			content: ctx.join(
+				'`🔍` There are no demo accounts available at the moment, please try again later.',
+				'You can also ask in a ticket.'
 			), flags: [
 				MessageFlags.Ephemeral
 			]
