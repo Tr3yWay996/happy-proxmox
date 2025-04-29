@@ -148,6 +148,13 @@
       "when": 1744780159615,
       "tag": "0020_nostalgic_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1745950027958,
+      "tag": "0021_mature_nova",
+      "breakpoints": true
     }
   ]
 }

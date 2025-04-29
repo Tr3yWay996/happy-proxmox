@@ -1,0 +1,1 @@
+DROP INDEX "demoAccesses_pterodactylId_idx";

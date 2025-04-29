@@ -72,7 +72,6 @@ export const demoAccesses = pgTable('demo_accesses', {
 
 	created: timestamp('created').default(sql`now()`).notNull()
 }, (demoAccesses) => [
-	uniqueIndex('demoAccesses_pterodactylId_idx').on(demoAccesses.pterodactylId),
 	index('demoAccesses_discordId_idx').on(demoAccesses.discordId),
 	index('demoAccesses_expired_idx').on(demoAccesses.expired),
 	index('demoAccesses_created_idx').on(demoAccesses.created)
