@@ -1,5 +1,6 @@
 import env from "@/globals/env"
 import database from "@/globals/database"
+import * as proxmox from "@/globals/proxmox"
 import getVersion from "@/index"
 import * as pterodactyl from "@/globals/pterodactyl"
 
@@ -15,7 +16,11 @@ export const runContext = {
 	/**
 	 * The Pterodactyl API Client
 	 * @since 1.1.0
-	*/ pterodactyl: pterodactyl,
+	*/ pterodactyl,
+	/**
+	 * The Proxmox API Client
+	 * @since 1.15.0
+	*/ proxmox,
 	/**
 	 * The App Version
 	 * @since 1.0.0

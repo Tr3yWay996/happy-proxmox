@@ -4,6 +4,8 @@ import getVersion from "@/index"
 import logger from "@/globals/logger"
 import database from "@/globals/database"
 import env from "@/globals/env"
+import * as proxmox from "@/globals/proxmox"
+import * as pterodactyl from "@/globals/pterodactyl"
 import { Runtime } from "@rjweb/runtime-node"
 import cache from "@/globals/cache"
 
@@ -30,6 +32,8 @@ export const server = new Server(Runtime, {
   cache,
   logger,
   env,
+  proxmox,
+  pterodactyl,
   join(...strings: (string | number | undefined | null | boolean)[]): string {
 		return strings.filter((str) => str === '' || Boolean(str)).join('\n')
 	}

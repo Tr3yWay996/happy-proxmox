@@ -2,6 +2,7 @@ import { globalAPIRouter } from "@/api"
 import { client } from "@/bot"
 import { string } from "@rjweb/utils"
 import { EmbedBuilder } from "discord.js"
+import { and, eq } from "drizzle-orm"
 
 export = new globalAPIRouter.Path('/')
 	.http('POST', '/', (http) => http
@@ -27,6 +28,17 @@ export = new globalAPIRouter.Path('/')
 
 			if (!discordId) return ctr.print({})
 
+			const demoAccess = await ctr["@"].database.select({
+				id: ctr["@"].database.schema.demoAccesses.id,
+			}).from(ctr["@"].database.schema.demoAccesses)
+				.where(and(
+					eq(ctr["@"].database.schema.demoAccesses.discordId, discordId),
+					eq(ctr["@"].database.schema.demoAccesses.expired, false)
+				))
+				.then((r) => r[0])
+
+			const ip = ctr["@"].proxmox.getIP(demoAccess.id || -8)
+
 			setImmediate(async() =>
 				await client.guilds.cache.get(ctr["@"].env.DISCORD_SERVER)!.channels.fetch(ctr["@"].env.DEMO_CHANNEL)
 					.then(async(channel) => 'send' in channel! ? channel.send({
@@ -47,7 +59,7 @@ export = new globalAPIRouter.Path('/')
 									},
 									{
 										name: `\`🔗\` Server`,
-										value: data.server ? `[\`${data.server.name}\`](<${ctr["@"].env.PTERO_URL}/server/${data.server.uuid.slice(0, 8)})` : '`none`',
+										value: data.server ? `[\`${data.server.name}\`](<${ctr["@"].pterodactyl.url(ctr["@"].env.PTERO_URL, ip)}/server/${data.server.uuid.slice(0, 8)})` : '`none`',
 										inline: true
 									},
 									...Object.keys(data.properties).length ? [{

@@ -1,4 +1,4 @@
-import { filesystem, string } from "@rjweb/utils"
+import { filesystem, network, string } from "@rjweb/utils"
 import { z } from "zod"
 
 let env: Record<string, string | undefined>
@@ -21,6 +21,16 @@ const infos = z.object({
 	BOT_TOKEN: z.string(),
 	SXC_TOKEN: z.string(),
 	BBB_TOKEN: z.string(),
+
+	PROXMOX_HOST: z.string(),
+	PROXMOX_NODE: z.string(),
+	PROXMOX_TEMPLATE: z.string(),
+	PROXMOX_BRIDGE: z.string(),
+	PROXMOX_PASSWORD: z.string(),
+	PROXMOX_STORAGE: z.string(),
+	PROXMOX_NET_GATEWAY: z.string().transform((v) => new network.IPAddress(v, 4)),
+	PROXMOX_NET_IP: z.string().transform((v) => new network.Subnet(v, 4)),
+	PROXMOX_NET_MAC: z.string().transform((v) => v.split(':').map((e) => parseInt(e, 16))),
 
 	PTERO_URL: z.string(),
 	PTERO_THEME_URLS: z.string().transform((v) => string.kv(v, null, ',', '=')).optional(),

@@ -8,6 +8,7 @@ import * as sourcexchange from "@/globals/sourcexchange"
 import * as builtbybit from "@/globals/builtbybit"
 import * as pterodactyl from "@/globals/pterodactyl"
 import * as support from "@/globals/support"
+import * as proxmox from "@/globals/proxmox"
 import s3 from "@/globals/s3"
 import { Scope } from "@sentry/node"
 import logger from "@/globals/logger"
@@ -133,6 +134,10 @@ export default class Context<Interaction extends any> {
 	 * The Logger Helper
 	 * @since 1.0.0
 	*/ public logger = logger
+	/**
+	 * The Proxmox API Client
+	 * @since 1.15.0
+	*/ public proxmox = proxmox
 	/**
 	 * The SourceXchange API Client
 	 * @since 1.0.0

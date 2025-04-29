@@ -11,6 +11,7 @@ export default new Command()
 	)
 	.listen(async(ctx) => {
 		const demoAccesses = await ctx.database.select({
+			id: ctx.database.schema.demoAccesses.id,
 			password: ctx.database.schema.demoAccesses.password,
 			expired: ctx.database.schema.demoAccesses.expired,
 			created: ctx.database.schema.demoAccesses.created
@@ -18,21 +19,25 @@ export default new Command()
 			.where(eq(ctx.database.schema.demoAccesses.discordId, ctx.interaction.user.id))
 
 		const active = demoAccesses.find((access) => !access.expired)
-		if (active) return ctx.interaction.reply({
-			content: ctx.join(
-				'`🔍` You already have an active demo account.',
-				`expires <t:${Math.floor((active.created.getTime() + time(1).h()) / 1000)}:R>`,
-				'',
-				ctx.env.PTERO_URL,
-				ctx.env.PTERO_THEME_URLS ? Object.entries(ctx.env.PTERO_THEME_URLS).map(([ name, url ]) => `[${name} Demo](<${url}>)`).join(' | ') : null,
-				'```properties',
-				`username: demo.${ctx.interaction.user.id}`,
-				`password: ${active.password}`,
-				'```'
-			), flags: [
-				MessageFlags.Ephemeral
-			]
-		})
+		if (active) {
+			const ip = ctx.proxmox.getIP(active.id)
+
+			return ctx.interaction.reply({
+				content: ctx.join(
+					'`🔍` You already have an active demo account.',
+					`expires <t:${Math.floor((active.created.getTime() + time(1).h()) / 1000)}:R>`,
+					'',
+					ctx.pterodactyl.url(ctx.env.PTERO_URL, ip),
+					ctx.env.PTERO_THEME_URLS ? Object.entries(ctx.env.PTERO_THEME_URLS).map(([ name, url ]) => `[${name} Demo](<${ctx.pterodactyl.url(url, ip)}>)`).join(' | ') : null,
+					'```properties',
+					'username: demo',
+					`password: ${active.password}`,
+					'```'
+				), flags: [
+					MessageFlags.Ephemeral
+				]
+			})
+		}
 
 		if (demoAccesses.some((access) => access.created.getTime() > Date.now() - time(1).d())) return ctx.interaction.reply({
 			content: ctx.join(
@@ -48,17 +53,46 @@ export default new Command()
 			uppercase: false
 		})
 
-		await Promise.all([
+		const [[demoAccess]] = await Promise.all([
 			ctx.database.insert(ctx.database.schema.demoAccesses)
 				.values({
 					discordId: ctx.interaction.user.id,
 					pterodactylId: -number.generate(0, 100000),
 					password
-				}),
+				})
+				.returning({ id: ctx.database.schema.demoAccesses.id }),
 			ctx.interaction.deferReply({ flags: [MessageFlags.Ephemeral] })
 		])
 
-		const id = await ctx.pterodactyl.createUser(ctx.interaction.user, password)
+		const ip = ctx.proxmox.getIP(demoAccess.id)
+
+		const mac = Array.from(ctx.env.PROXMOX_NET_MAC)
+		mac[5] = 10 + (demoAccess.id % 246)
+
+		const macStr = mac.map((e) => e.toString(16).padStart(2, '0')).join(':')
+		const lxcId = 10000 + ip.rawData[3]
+
+		await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$post({
+			vmid: lxcId,
+			hostname: `demo-panel-${demoAccess.id}`,
+			description: `Demo account for @${ctx.interaction.user.username} (${ctx.interaction.user.id})`,
+			ostemplate: ctx.env.PROXMOX_TEMPLATE,
+			memory: 6144,
+			cores: 2,
+			protection: false,
+			restore: true,
+			start: true,
+			storage: ctx.env.PROXMOX_STORAGE,
+			net0: `name=eth0,bridge=${ctx.env.PROXMOX_BRIDGE},firewall=1,gw=${ctx.env.PROXMOX_NET_GATEWAY},hwaddr=${macStr},ip=${ip}/${ctx.env.PROXMOX_NET_IP.netmask},type=veth`,
+		})
+
+		while (await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).status.current.$get().then((e) => e.lock)) {
+			await time.wait(time(1).s())
+		}
+
+		await time.wait(time(5).s())
+
+		const id = await ctx.pterodactyl.createUser(ip, ctx.interaction.user, password)
 
 		await Promise.all([
 			ctx.database.update(ctx.database.schema.demoAccesses)
@@ -77,10 +111,10 @@ export default new Command()
 			'`🔍` Demo account created.',
 			`expires <t:${Math.floor((Date.now() + time(1).h()) / 1000)}:R>`,
 			'',
-			ctx.env.PTERO_URL,
-			ctx.env.PTERO_THEME_URLS ? Object.entries(ctx.env.PTERO_THEME_URLS).map(([ name, url ]) => `[${name} Demo](<${url}>)`).join(' | ') : null,
+			ctx.pterodactyl.url(ctx.env.PTERO_URL, ip),
+			ctx.env.PTERO_THEME_URLS ? Object.entries(ctx.env.PTERO_THEME_URLS).map(([ name, url ]) => `[${name} Demo](<${ctx.pterodactyl.url(url, ip)}>)`).join(' | ') : null,
 			'```properties',
-			`username: demo.${ctx.interaction.user.id}`,
+			'username: demo',
 			`password: ${password}`,
 			'```'
 		))

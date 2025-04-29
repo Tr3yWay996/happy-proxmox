@@ -1,16 +1,25 @@
 import env from "@/globals/env"
 import { User } from "discord.js"
 import axios from "axios"
+import { network } from "@rjweb/utils"
+
+/**
+ * Format a URL
+ * @since 1.15.0
+*/ export function url(url: string, ip: network.IPAddress<4>): string{
+	return url.replace('{}', ip.rawData[3].toString())
+}
 
 /**
  * Create a new User
  * @since 1.1.0
-*/ export async function createUser(user: User, password: string): Promise<number> {
-	const data = await axios.post(`${env.PTERO_URL}/api/application/users`, {
-		email: `demo.${user.id}@demo.panel`,
-		username: `demo.${user.id}`,
+*/ export async function createUser(ip: network.IPAddress<4>, user: User, password: string): Promise<number> {
+	const data = await axios.post(`${url(env.PTERO_URL, ip)}/api/application/users`, {
+		email: 'user@demo.panel',
+		username: 'demo',
 		first_name: 'Demo',
 		last_name: user.id,
+		root_admin: true,
 		password
 	}, {
 		headers: {
@@ -19,58 +28,10 @@ import axios from "axios"
 		}
 	})
 
-	await Promise.all(env.PTERO_DEMO_SERVERS.map((server) => axios.post(`${env.PTERO_URL}/api/client/servers/${server}/users`, {
-		email: `demo.${user.id}@demo.panel`,
+	await Promise.all(env.PTERO_DEMO_SERVERS.map((server) => axios.post(`${url(env.PTERO_URL, ip)}/api/client/servers/${server}/users`, {
+		email: 'user@demo.panel',
 		permissions: [
-			'control.console',
-			'control.start',
-			'control.stop',
-			'control.restart',
-			'file.create',
-			'file.read',
-			'file.read-content',
-			'file.update',
-			'file.delete',
-			'file.archive',
-			'file.sftp',
-			'splitter.read',
-			'splitter.create',
-			'splitter.update',
-			'splitter.delete',
-			'templates.read',
-			'templates.install',
-			'environment-variable.read',
-			'environment-variable.create',
-			'environment-variable.update',
-			'environment-variable.delete',
-			'subdomains.read',
-			'subdomains.create',
-			'subdomains.update',
-			'subdomains.delete',
-			'backup.create',
-			'backup.read',
-			'backup.delete',
-			'backup.download',
-			'backup.restore',
-			'allocation.read',
-			'allocation.create',
-			'allocation.update',
-			'allocation.delete',
-			'startup.read',
-			'startup.update',
-			'startup.docker-image',
-			'database.create',
-			'database.read',
-			'database.update',
-			'database.delete',
-			'database.view_password',
-			'schedule.create',
-			'schedule.read',
-			'schedule.update',
-			'schedule.delete',
-			'settings.rename',
-			'settings.change-egg',
-			'settings.reinstall'
+			'control.console'
 		]
 	}, {
 		headers: {
@@ -80,30 +41,4 @@ import axios from "axios"
 	})))
 
 	return data.data.attributes.id
-}
-
-/**
- * Delete a User
- * @since 1.1.0
-*/ export async function deleteUser(id: number): Promise<void> {
-	await axios.delete(`${env.PTERO_URL}/api/application/users/${id}`, {
-		headers: {
-			Authorization: `Bearer ${env.PTERO_ADMIN_TOKEN}`,
-			Accept: 'application/json'
-		}
-	})
-}
-
-/**
- * Get all Servers
- * @since 1.8.0
-*/ export async function getServers(): Promise<[name: string, uuid: string][]> {
-	const data = await axios.get(`${env.PTERO_URL}/api/client`, {
-		headers: {
-			Authorization: `Bearer ${env.PTERO_CLIENT_TOKEN}`,
-			Accept: 'application/json'
-		}
-	})
-
-	return data.data.data.map((server: any) => [server.attributes.name, server.attributes.uuid])
 }

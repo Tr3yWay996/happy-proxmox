@@ -1,4 +1,3 @@
-import { version } from "pg/package.json"
 import logger from "@/globals/logger"
 import env from "@/globals/env"
 import { drizzle } from "drizzle-orm/node-postgres"
@@ -12,11 +11,15 @@ const client = new Client({
 })
 
 client.connect().then(() => {
-	logger()
-		.text('Database', (c) => c.cyan)
-		.text(`(${version}) Connection established!`)
-		.text(`(${(performance.now() - startTime).toFixed(1)}ms)`, (c) => c.gray)
-    .info()
+	client.query<{ v: string }>('SELECT split_part(version(), \' \', 4) v').then(({ rows }) => {
+		const version = rows[0].v.slice(0, -1)
+
+		logger()
+			.text('Database', (c) => c.cyan)
+			.text(`(${version}) Connection established!`)
+			.text(`(${(performance.now() - startTime).toFixed(1)}ms)`, (c) => c.gray)
+			.info()
+	})
 })
 
 const db = drizzle(client, { schema })
