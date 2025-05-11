@@ -42,8 +42,11 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "bufferutil",
       "esbuild",
-      "tesseract.js"
+      "tesseract.js",
+      "utf-8-validate",
+      "zlib-sync"
     ]
   }
 }

@@ -87,7 +87,7 @@ export default new Command()
 			hostname: `demo-panel-${demoAccess.id}`,
 			description: `Demo account for @${ctx.interaction.user.username} (${ctx.interaction.user.id})`,
 			ostemplate: ctx.env.PROXMOX_TEMPLATE,
-			memory: 6144,
+			memory: 4096,
 			cores: 2,
 			protection: false,
 			restore: true,
