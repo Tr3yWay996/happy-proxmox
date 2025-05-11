@@ -90,7 +90,7 @@ export default new Command()
 			memory: 4096,
 			cores: 2,
 			protection: false,
-			restore: true,
+			restore: false,
 			start: true,
 			storage: ctx.env.PROXMOX_STORAGE,
 			net0: `name=eth0,bridge=${ctx.env.PROXMOX_BRIDGE},firewall=1,gw=${ctx.env.PROXMOX_NET_GATEWAY},hwaddr=${macStr},ip=${ip}/${ctx.env.PROXMOX_NET_IP.netmask},type=veth`,

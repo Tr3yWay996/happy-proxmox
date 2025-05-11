@@ -26,6 +26,7 @@ const infos = z.object({
 	PROXMOX_NODE: z.string(),
 	PROXMOX_TEMPLATE: z.string(),
 	PROXMOX_BRIDGE: z.string(),
+	PROXMOX_USER: z.string(),
 	PROXMOX_PASSWORD: z.string(),
 	PROXMOX_STORAGE: z.string(),
 	PROXMOX_NET_GATEWAY: z.string().transform((v) => new network.IPAddress(v, 4)),
@@ -47,11 +48,11 @@ const infos = z.object({
 	S3_ACCESS_KEY: z.string().optional(),
 	S3_SECRET_KEY: z.string().optional(),
 
-	TICKET_CATEGORY: z.string(),
-	TICKET_LOG_CHANNEL: z.string(),
+	TICKET_CATEGORY: z.string().optional(),
+	TICKET_LOG_CHANNEL: z.string().optional(),
 	DEMO_CHANNEL: z.string(),
 	DEMO_ROLE: z.string(),
-	CUSTOMER_ROLE: z.string(),
+	CUSTOMER_ROLE: z.string().optional(),
 	SUPPORT_ROLE: z.string(),
 
 	PORT: z.string().transform((v) => parseInt(v)).optional(),

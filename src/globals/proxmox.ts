@@ -1,9 +1,12 @@
 import env from "@/globals/env"
 import proxmoxApi from "proxmox-api"
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export const client = proxmoxApi({
 	host: env.PROXMOX_HOST,
-	password: env.PROXMOX_PASSWORD
+	password: env.PROXMOX_PASSWORD,
+	username: env.PROXMOX_USER
 })
 
 /**
