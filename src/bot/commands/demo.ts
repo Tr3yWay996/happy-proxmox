@@ -92,7 +92,10 @@ export default new Command()
 			protection: false,
 			restore: false,
 			start: true,
+			features: 'keyctl=1,nesting=1',
+			hookscript: 'local:snippets/hermes.sh',
 			storage: ctx.env.PROXMOX_STORAGE,
+			rootfs: `${ctx.env.PROXMOX_STORAGE}:8`,
 			net0: `name=eth0,bridge=${ctx.env.PROXMOX_BRIDGE},firewall=1,gw=${ctx.env.PROXMOX_NET_GATEWAY},hwaddr=${macStr},ip=${ip}/${ctx.env.PROXMOX_NET_IP.netmask},type=veth`,
 		})
 
@@ -100,15 +103,42 @@ export default new Command()
 			await time.wait(time(1).s())
 		}
 
-		await time.wait(time(5).s())
+		await time.wait(time(45).s())
 
-		await Promise.all([
-			ctx.pterodactyl.createUser(ip, ctx.interaction.user, password),
-			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.members.fetch(ctx.interaction.user.id)
-				.then((member) => member.roles.add(ctx.env.DEMO_ROLE)),
-			ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.channels.fetch(ctx.env.DEMO_CHANNEL)
-				.then((channel) => 'send' in channel! ? channel.send(`\`🔍\` <@${ctx.interaction.user.id}>'s demo access has started, it expires <t:${Math.floor((Date.now() + time(1).h()) / 1000)}:R>`) : null)
-		])
+		try {
+			await Promise.all([
+				ctx.pterodactyl.createUser(ip, ctx.interaction.user, password),
+				ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.members.fetch(ctx.interaction.user.id)
+					.then((member) => member.roles.add(ctx.env.DEMO_ROLE)),
+				ctx.client.guilds.cache.get(ctx.env.DISCORD_SERVER)!.channels.fetch(ctx.env.DEMO_CHANNEL)
+					.then((channel) => 'send' in channel! ? channel.send(`\`🔍\` <@${ctx.interaction.user.id}>'s demo access has started, it expires <t:${Math.floor((Date.now() + time(1).h()) / 1000)}:R>`) : null)
+			])
+		} catch (error) {
+			console.error('Failed to setup demo account:', error)
+			
+			// Clean up the LXC container since setup failed
+			try {
+				await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).status.stop.$post()
+				
+				// Wait until container is actually stopped (like the crontab does)
+				while (await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).status.current.$get().then((e) => e.status !== 'stopped')) {
+					await time.wait(time(1).s())
+				}
+				
+				await ctx.proxmox.client.nodes.$(ctx.env.PROXMOX_NODE).lxc.$(lxcId).$delete()
+			} catch (cleanupError) {
+				console.error('Failed to cleanup LXC container after setup failure:', cleanupError)
+			}
+			
+			// Mark demo access as expired
+			await ctx.database.update(ctx.database.schema.demoAccesses)
+				.set({ expired: true })
+				.where(eq(ctx.database.schema.demoAccesses.id, demoAccess.id))
+			
+			return ctx.interaction.editReply({
+				content: '`❌` Failed to setup demo account. The Pterodactyl panel might be temporarily unavailable. Please try again later or contact support.'
+			})
+		}
 
 		return ctx.interaction.editReply(ctx.join(
 			'`🔍` Demo account created.',
